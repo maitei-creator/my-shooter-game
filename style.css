@@ -1,0 +1,52 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #333;
+    font-family: sans-serif;
+}
+
+#game-container {
+    border: 2px solid white;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    /* PCでの最大幅を設定 */
+    max-width: 800px; 
+    width: 95vw; /* 画面幅に合わせて伸縮 */
+    aspect-ratio: 16 / 9; /* 16:9の比率を維持 */
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#controls {
+    display: flex;
+    justify-content: space-around;
+    width: 95vw;
+    max-width: 800px;
+    margin-top: 20px;
+}
+
+.mobile-control {
+    padding: 15px 30px;
+    font-size: 18px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    user-select: none; /* タップ時の選択防止 */
+    touch-action: manipulation; /* タッチ操作の最適化 */
+}
+
+/* PC/キーボード操作時、モバイルボタンを非表示にする（任意） */
+@media (min-width: 800px) {
+    .mobile-control {
+        display: none;
+    }
+}

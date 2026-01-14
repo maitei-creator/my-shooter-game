@@ -1,0 +1,16 @@
+{
+  "name": "レトロ・シューター",
+  "short_name": "シューター",
+  "description": "ブラウザで遊べる横スクロールシューティングゲーム",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#000033",
+  "theme_color": "#000033",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}
