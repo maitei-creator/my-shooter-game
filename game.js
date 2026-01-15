@@ -8,17 +8,17 @@ const ctx = canvas.getContext('2d');
 
 let gameWidth, gameHeight;
 const keys = {};
-
-// ゲームの状態管理: 'title', 'playing', 'gameover'
 let gameState = 'title';
 let score = 0;
 
-// プレイヤー機の定義
+// デルタタイム計算用の変数
+let lastTime = 0;
+
 const player = {
     x: 50,
     y: 0,
     size: 20,
-    speed: 5,
+    speed: 300, // 1秒間に300ピクセル移動
     color: 'cyan',
     draw() {
         ctx.fillStyle = this.color;
@@ -28,7 +28,10 @@ const player = {
         ctx.lineTo(this.x, this.y + this.size / 2);
         ctx.fill();
     },
-    update() {
+    update(dt) {
+        if (keys['ArrowUp'] || keys['w']) this.y -= this.speed * dt;
+        if (keys['ArrowDown'] || keys['s']) this.y += this.speed * dt;
+
         if (this.y < this.size / 2) this.y = this.size / 2;
         if (this.y > gameHeight - this.size / 2) this.y = gameHeight - this.size / 2;
     }
@@ -53,9 +56,9 @@ class Bullet {
         this.x = x + player.size;
         this.y = y;
         this.radius = 3;
-        this.speed = 8;
+        this.speed = 500; // 秒速
     }
-    update() { this.x += this.speed; }
+    update(dt) { this.x += this.speed * dt; }
     draw() {
         ctx.fillStyle = 'yellow';
         ctx.beginPath();
@@ -70,9 +73,9 @@ class Enemy {
         this.size = Math.floor(Math.random() * 20) + 20;
         this.x = gameWidth + this.size;
         this.y = Math.random() * (gameHeight - this.size) + this.size / 2;
-        this.speed = Math.random() * 2 + 3;
+        this.speed = Math.random() * 100 + 150; // 秒速 150〜250
     }
-    update() { this.x -= this.speed; }
+    update(dt) { this.x -= this.speed * dt; }
     draw() {
         ctx.fillStyle = '#ff4444';
         ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
@@ -80,10 +83,14 @@ class Enemy {
 }
 
 // =========================
-// 入力処理
+// 入力処理（前回と同様）
 // =========================
 window.addEventListener('keydown', (e) => { keys[e.key] = true; });
 window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+const upButton = document.getElementById('up');
+const downButton = document.getElementById('down');
+const fireButton = document.getElementById('fire');
 
 function handleAction() {
     if (gameState === 'title' || gameState === 'gameover') {
@@ -93,25 +100,15 @@ function handleAction() {
     }
 }
 
-function stopAction() { keys[' '] = false; }
-
-const upButton = document.getElementById('up');
-const downButton = document.getElementById('down');
-const fireButton = document.getElementById('fire');
-
 upButton.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowUp'] = true; }, {passive: false});
 upButton.addEventListener('touchend', () => { keys['ArrowUp'] = false; });
 downButton.addEventListener('touchstart', (e) => { e.preventDefault(); keys['ArrowDown'] = true; }, {passive: false});
 downButton.addEventListener('touchend', () => { keys['ArrowDown'] = false; });
 fireButton.addEventListener('touchstart', (e) => { e.preventDefault(); handleAction(); }, {passive: false});
-fireButton.addEventListener('touchend', () => { stopAction(); });
-
-// PCマウス用
-fireButton.addEventListener('mousedown', handleAction);
-fireButton.addEventListener('mouseup', stopAction);
+fireButton.addEventListener('touchend', () => { keys[' '] = false; });
 
 // =========================
-// ゲームロジック
+// ゲームメインループ
 // =========================
 function resetGame() {
     score = 0;
@@ -122,27 +119,20 @@ function resetGame() {
 }
 
 let lastBulletTime = 0;
-function handleInput() {
-    if (keys['ArrowUp'] || keys['w']) player.y -= player.speed;
-    if (keys['ArrowDown'] || keys['s']) player.y += player.speed;
-    if (keys[' ']) {
-        const now = Date.now();
-        if (now - lastBulletTime > 150) {
-            bullets.push(new Bullet(player.x, player.y));
-            lastBulletTime = now;
-        }
-    }
-}
 
-function gameLoop() {
-    // 背景
+function gameLoop(timestamp) {
+    // 前回のフレームからの経過時間を計算（秒単位）
+    const dt = (timestamp - lastTime) / 1000;
+    lastTime = timestamp;
+
     ctx.fillStyle = '#000033';
     ctx.fillRect(0, 0, gameWidth, gameHeight);
 
     if (gameState === 'title') {
         drawScreen("レトロ・シューター", "「発射」ボタンでスタート");
     } else if (gameState === 'playing') {
-        updatePlaying();
+        // 更新処理に dt を渡す
+        updatePlaying(dt || 0); 
     } else if (gameState === 'gameover') {
         drawScreen("ゲームオーバー", `スコア: ${score}  - 再挑戦は発射ボタン`);
     }
@@ -150,33 +140,36 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-function updatePlaying() {
-    handleInput();
-    player.update();
+function updatePlaying(dt) {
+    player.update(dt);
     player.draw();
 
-    // 敵の生成
-    if (Math.random() < 0.03) enemies.push(new Enemy());
+    // 発射処理
+    if (keys[' ']) {
+        const now = Date.now();
+        if (now - lastBulletTime > 150) {
+            bullets.push(new Bullet(player.x, player.y));
+            lastBulletTime = now;
+        }
+    }
 
-    // 弾の更新
+    if (Math.random() < 0.02) enemies.push(new Enemy());
+
     bullets.forEach((bullet, bIndex) => {
-        bullet.update();
+        bullet.update(dt);
         bullet.draw();
         if (bullet.x > gameWidth) bullets.splice(bIndex, 1);
     });
 
-    // 敵の更新
     enemies.forEach((enemy, eIndex) => {
-        enemy.update();
+        enemy.update(dt);
         enemy.draw();
 
-        // 当たり判定：自分 vs 敵
         const distToPlayer = Math.hypot(player.x - enemy.x, player.y - enemy.y);
         if (distToPlayer < player.size / 2 + enemy.size / 2) {
             gameState = 'gameover';
         }
 
-        // 当たり判定：弾 vs 敵
         bullets.forEach((bullet, bIndex) => {
             const dist = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y);
             if (dist < bullet.radius + enemy.size / 2) {
@@ -185,11 +178,9 @@ function updatePlaying() {
                 score += 10;
             }
         });
-
         if (enemy.x < -enemy.size) enemies.splice(eIndex, 1);
     });
 
-    // スコア表示
     ctx.fillStyle = 'white';
     ctx.font = 'bold 20px sans-serif';
     ctx.textAlign = 'left';
@@ -197,8 +188,6 @@ function updatePlaying() {
 }
 
 function drawScreen(title, sub) {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(0, 0, gameWidth, gameHeight);
     ctx.fillStyle = 'white';
     ctx.textAlign = 'center';
     ctx.font = 'bold 40px sans-serif';
@@ -207,4 +196,5 @@ function drawScreen(title, sub) {
     ctx.fillText(sub, gameWidth / 2, gameHeight / 2 + 40);
 }
 
-gameLoop();
+// 最初のループ開始
+requestAnimationFrame(gameLoop);
