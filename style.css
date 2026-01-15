@@ -1,46 +1,72 @@
-/* 全体レイアウト */
 body {
     margin: 0;
-    overflow: hidden; /* スクロール禁止 */
-    background-color: #000;
-    display: flex;
-    flex-direction: row; /* 横並びに変更 */
-    align-items: center;
-    justify-content: center;
+    padding: 0;
+    width: 100vw;
     height: 100vh;
-}
-
-#game-container {
-    position: relative;
-    width: 80vw; /* 画面の8割をゲーム画面に */
-    height: 90vh;
-    border: 2px solid #555;
-}
-
-/* ボタンの配置を左右に分ける */
-#controls {
     display: flex;
-    flex-direction: column; /* ボタンは縦に並べる */
-    justify-content: space-around;
-    height: 90vh;
-    width: 15vw;
-    padding: 0 10px;
+    flex-direction: row; /* 横に並べる */
+    align-items: center;
+    justify-content: space-between; /* 両端と中央に配置 */
+    background-color: #000;
+    overflow: hidden;
+    font-family: sans-serif;
+    touch-action: none; /* 画面の不必要なズームやスクロールを防止 */
 }
 
+/* ゲーム画面を中央に、残りのスペースを全部使う */
+#game-container {
+    flex-grow: 1; 
+    height: 100vh;
+    position: relative;
+    border-left: 1px solid #333;
+    border-right: 1px solid #333;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* ボタンのグループ設定 */
+.control-group {
+    width: 15vw; /* 左右15%ずつボタンエリアにする */
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px; /* ボタン同士の隙間 */
+    z-index: 10;
+}
+
+/* 移動ボタン（左側） */
 .mobile-control {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%; /* 丸ボタンにする */
-    background-color: rgba(255, 255, 255, 0.3);
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
     color: white;
     border: 2px solid white;
-    font-size: 14px;
+    font-size: 24px;
 }
 
-/* 縦画面（ポートレート）の時の警告 */
+/* 発射ボタン（右側）を大きく */
+.mobile-control-fire {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background-color: rgba(255, 0, 0, 0.4); /* 発射は赤っぽく */
+    color: white;
+    border: 3px solid white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* 縦画面の時の警告（前回同様） */
 @media (orientation: portrait) {
     body::before {
-        content: "画面を横向きにしてください 🔄";
+        content: "スマホを横向きにしてください 🔄";
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
         background: #000;
@@ -49,6 +75,5 @@ body {
         align-items: center;
         justify-content: center;
         z-index: 9999;
-        font-size: 20px;
     }
 }

@@ -95,21 +95,19 @@ class Enemy {
 // 入力処理
 // =========================
 
-// PC (キーボード)
-const keys = {};
-window.addEventListener('keydown', (e) => { keys[e.key] = true; });
-window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+// game.js の「入力処理」の部分を以下に書き換えてください
 
-// スマホ (ボタン)
+// スマホボタンの取得
 const upButton = document.getElementById('up');
 const downButton = document.getElementById('down');
 const fireButton = document.getElementById('fire');
 
+// タッチイベントの共通関数
 function handleTouchStart(e) {
-    e.preventDefault(); // スクロール防止
+    e.preventDefault();
     if (this.id === 'up') keys['ArrowUp'] = true;
     if (this.id === 'down') keys['ArrowDown'] = true;
-    if (this.id === 'fire') keys[' '] = true; // スペースキーに対応
+    if (this.id === 'fire') keys[' '] = true;
 }
 
 function handleTouchEnd(e) {
@@ -119,37 +117,15 @@ function handleTouchEnd(e) {
     if (this.id === 'fire') keys[' '] = false;
 }
 
-// タッチイベントの設定
+// ボタンにイベントを登録
 [upButton, downButton, fireButton].forEach(button => {
+    button.addEventListener('touchstart', handleTouchStart, {passive: false});
+    button.addEventListener('touchend', handleTouchEnd, {passive: false});
+    // PCでのマウス操作用
     button.addEventListener('mousedown', handleTouchStart);
     button.addEventListener('mouseup', handleTouchEnd);
-    button.addEventListener('touchstart', handleTouchStart);
-    button.addEventListener('touchend', handleTouchEnd);
-    button.addEventListener('mouseleave', handleTouchEnd); // マウスがボタンから離れた時
 });
 
-
-let lastBulletTime = 0;
-const fireRate = 200; // ms (連射速度)
-
-function handleInput() {
-    // プレイヤーの移動
-    if (keys['ArrowUp'] || keys['w']) {
-        player.y -= player.speed;
-    }
-    if (keys['ArrowDown'] || keys['s']) {
-        player.y += player.speed;
-    }
-
-    // 発射
-    if (keys[' '] || keys[' ']) { // スペースキー
-        const now = Date.now();
-        if (now - lastBulletTime > fireRate) {
-            bullets.push(new Bullet(player.x, player.y));
-            lastBulletTime = now;
-        }
-    }
-}
 
 // =========================
 // ゲームループ
