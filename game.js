@@ -9,13 +9,18 @@ const ctx = canvas.getContext('2d');
 let gameWidth;
 let gameHeight;
 
-// キャンバスサイズを親コンテナに合わせる
+// resizeCanvas 関数を以下のように強化します
 function resizeCanvas() {
+    // コンテナのサイズに合わせる
     gameWidth = container.clientWidth;
     gameHeight = container.clientHeight;
     canvas.width = gameWidth;
     canvas.height = gameHeight;
+    
+    // プレイヤーの位置が画面外にいかないよう調整
+    player.y = gameHeight / 2;
 }
+
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas(); // 初回実行
 

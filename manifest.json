@@ -1,9 +1,9 @@
 {
   "name": "レトロ・シューター",
   "short_name": "シューター",
-  "description": "ブラウザで遊べる横スクロールシューティングゲーム",
   "start_url": "index.html",
   "display": "standalone",
+  "orientation": "landscape", // 追加：横向きに固定
   "background_color": "#000033",
   "theme_color": "#000033",
   "icons": [
